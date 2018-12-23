@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>NYC Parking Lookup</title>
+    <script>
+      function lookup(event) {
+        event.preventDefault();
+        var post = new XMLHttpRequest();
+        post.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            console.log(this.responseText);
+          }
+        };
+        // Execute async.
+        post.open("POST", event.target.action, true);
+        // Messy but we know there is only one form.
+        post.send({"name": event.target[0].value});
+      }
+    </script>
+  </head>
+  <body>
+    <form method="POST" onsubmit="return lookup(event)">
+      Business Name:
+      <input type="text" name="name">
+      <input type="submit" value="Lookup">
+    </form>
+  </body>
+</html>

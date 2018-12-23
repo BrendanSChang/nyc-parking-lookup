@@ -1,0 +1,24 @@
+{
+  "name": "nyc-parking-lookup",
+  "version": "1.0.0",
+  "description": "Look up parking permit information for NYC businesses",
+  "engines": {
+    "node": "10.14.2"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrendanSChang/nyc-parking-lookup.git"
+  },
+  "keywords": [],
+  "author": "Brendan Chang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BrendanSChang/nyc-parking-lookup/issues"
+  },
+  "homepage": "https://github.com/BrendanSChang/nyc-parking-lookup#readme"
+}
