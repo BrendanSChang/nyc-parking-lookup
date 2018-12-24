@@ -26,49 +26,53 @@ http.createServer((req, res) => {
       query += data;
     });
     req.on("end", () => {
-      // Add on assumed values. The query string itself can be used directly
-      // for the Yelp API.
-      query += "&city=New York&state=NY&country=US";
       const params = qs.parse(query);
 
-      // TODO: This is all very brittle. Some records are already being filtered
-      // out because of the casing of "NY" and "NEW YORK".
-      let lobArgs = ["license_status=Active", "address_state=NY", "address_city=NEW YORK"];
-      lobArgs.push("business_name=" + params.name);
-      const firstSpace = params.address1.indexOf(' ')
-      lobArgs.push("address_building=" + params.address1.slice(0, firstSpace));
-      lobArgs.push("address_street_name=" + params.address1.slice(firstSpace + 1));
-      https.get(lobApi + '?' + lobArgs.join('&'), options, (resp) => {
+      // Add on assumed values.
+      const space = params.address1.indexOf(' ')
+      let lobArgs = [
+          "license_status='Active'",
+          // '%25' is the escaped version of '%'.
+          "(upper(industry) LIKE '%25PARKING%25' OR upper(industry) LIKE '%25GARAGE%25')",
+          "upper(address_state)='NY'",
+          "upper(address_city)='NEW YORK'",
+          "upper(business_name)='" + params.name + "'",
+          // TODO: This is still brittle. There should be data validation at some point,
+          // otherwise this really should not assume anything about the format.
+          "address_building='" + params.address1.slice(0, space) + "'",
+          "upper(address_street_name)='" + params.address1.slice(space + 1) + "'"];
+
+      // Just check to see whether the result is non-empty. The query is specific enough as-is.
+      let filter = "$select=count(industry)&$where=" + lobArgs.join(" AND ");
+      https.get(lobApi + '?' + filter, options, (lobRes) => {
         let match = "";
-        resp.on("data", (data) => {
+        lobRes.on("data", (data) => {
           match += data;
         });
-        resp.on("end", () => {
-          // Guaranteed to be a list.
-          match = JSON.parse(match);
-          let type = "Leased";
-          // Industry has been observed to be "Garage", "Parking Lot", and
-          // "Garage and Parking Lot".
-          for (let m of match) {
-            // TODO: Is there some way to move this into the query?
-            if (m.industry &&
-                (m.industry.indexOf("Parking") != -1 || m.industry.indexOf("Garage") != -1)) {
-              type = "Owned";
-              break;
-            }
-          }
-
+        lobRes.on("end", () => {
           res.writeHead(200, {"Content-Type": "text/html"});
-          res.end(type);
+
+          // match will be a list with a single item unless there is an error.
+          match = JSON.parse(match);
+          if (match.error) {
+            res.end("Error: " + match.message);
+          } else if (match[0].count_industry == 0) {
+            res.end("Leased");
+          } else {
+            res.end("Owned");
+          }
         });
-        resp.on("error", (err) => {
-          console.log("Error matching business: " + err.message);
+        lobRes.on("error", (err) => {
+          console.log("Error running filter '" + filter + "': " + err.message);
         });
       });
 
       // TODO: Unfortunately, the data here is not useful and it doesn't seem
       // to be available through a different endpoint.
       /*
+      // Add on assumed values. The query string itself can be used directly
+      // for the Yelp API.
+      query += "&city=NEW YORK&state=NY&country=US";
       https.get(yelpApi + "matches?" + query, options, (resp) => {
         let match = "";
         resp.on("data", (data) => {

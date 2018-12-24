@@ -42,10 +42,9 @@
     </p>
     <p>
       Please note that the NYC LOB API is very particular, so the query must
-      exactly match the data in the database. Generally, all names should be in
-      all caps and names of people should follow the format "LAST, FIRST MI".
-      The default value in the form is an example of a business that owns its
-      parking.
+      exactly match the data in the database. Names of people should follow the
+      format "LAST, FIRST MI". The default value in the form is an example of a
+      business that owns its parking.
     </p>
     <br />
     <form id="lookup-form" method="POST">
@@ -81,7 +80,7 @@
         let queryArgs = [];
         for (let [key, value] of formData.entries()) {
           if (value) {
-            queryArgs.push(key.toString() + '=' + value.toString());
+            queryArgs.push(key.toString() + '=' + value.toString().toUpperCase());
           }
         }
 

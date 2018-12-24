@@ -4,5 +4,4 @@ This is a basic application to look up parking data for businesses and business 
 
 ## Known Issues
 
-- The Yelp Fusion API business details endpoint does not seem to contain the desired parking data
-- The Legally Owned Businesses database is not case insensitive right now
+The Yelp Fusion API business details endpoint does not seem to contain the desired parking data. From inspecting the Yelp academic business dataset, the parking data should be in business attributes section, but this does not seem to ever be populated in the query response.
