@@ -3,27 +3,95 @@
   <head>
     <meta charset="UTF-8">
     <title>NYC Parking Lookup</title>
+    <style type="text/css">
+      body {
+        width: 50%;
+        margin: auto;
+        font-family: sans-serif;
+      }
+
+      input {
+        padding: 5px;
+        border: 1px solid #cccccc;
+        border-radius: 3px;
+      }
+
+      input[type=text] {
+        width: 100%;
+        margin: 7px 0;
+      }
+
+      input[type=submit] {
+        margin: 7px 0;
+      }
+
+      input[type=submit]:hover {
+        background-color: #bcbcbc;
+      }
+
+    </style>
+  </head>
+  <body>
+    <p>
+      This simple application can be used to look up parking permit data for
+      NYC businesses. Currently, the data is only queried against the NYC
+      Legally Owned Businesses database so it is only capable of interpreting
+      whether a business owns or leases its parking. The Yelp API was also
+      tested but the parking data is not available through their business
+      details endpoint.
+    </p>
+    <p>
+      Please note that the NYC LOB API is very particular, so the query must
+      exactly match the data in the database. Generally, all names should be in
+      all caps and names of people should follow the format "LAST, FIRST MI".
+      The default value in the form is an example of a business that owns its
+      parking.
+    </p>
+    <br />
+    <form id="lookup-form" method="POST">
+      Business/Owner Name: <input type="text" name="name" value="IMPERIAL PARKING (U.S.), LLC"/><br />
+      Address 1: <input type="text" name="address1" value="150 NASSAU ST" /><br />
+      Address 2: <input type="text" name="address2" /><br />
+      Address 3: <input type="text" name="address3" /><br />
+      <input type="submit" value="Search" />
+    </form>
+    <br />
+    <br />
+    <div>
+      Result: <span id="results-span"><!-- Results will go here. --></span>
+    </div>
+
+    <!-- Put the script down here so that the DOM is (hopefully) loaded. -->
     <script>
-      function lookup(event) {
+      let resultsSpan = document.getElementById("results-span");
+      document.getElementById("lookup-form").onsubmit = function(event) {
         event.preventDefault();
-        var post = new XMLHttpRequest();
+        let post = new XMLHttpRequest();
         post.onreadystatechange = function() {
           if (this.readyState == 4 && this.status == 200) {
-            console.log(this.responseText);
+            resultsSpan.innerHTML = this.responseText;
           }
         };
         // Execute async.
         post.open("POST", event.target.action, true);
-        // Messy but we know there is only one form.
-        post.send({"name": event.target[0].value});
+
+        // Not the cleanest. Ideally, FormData would be sent over directly but
+        // this app is super-minimal in its dependencies.
+        const formData = new FormData(this);
+        let queryArgs = [];
+        for (let [key, value] of formData.entries()) {
+          if (value) {
+            queryArgs.push(key.toString() + '=' + value.toString());
+          }
+        }
+
+        // These are required arguments.
+        if (formData.get("name") && formData.get("address1")) {
+          post.send(queryArgs.join('&'));
+        } else {
+          resultsSpan.innerHTML = "Business Name and Address 1 must be set.";
+        }
       }
     </script>
-  </head>
-  <body>
-    <form method="POST" onsubmit="return lookup(event)">
-      Business Name:
-      <input type="text" name="name">
-      <input type="submit" value="Lookup">
-    </form>
   </body>
 </html>
