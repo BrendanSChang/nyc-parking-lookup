@@ -3,9 +3,10 @@ const https = require("https");
 const qs = require("querystring");
 const fs = require("fs");
 // This is for the NYC Legally Operating Businesses API.
-const options = {headers: {"X-App-Token": "YOUR_APP_TOKEN"}};
+const options = {headers: {"X-App-Token": process.env.LOB_API_TOKEN || ""}};
 const lobApi = "https://data.cityofnewyork.us/resource/p2mh-mrfv.json";
 // const yelpApi = "https://api.yelp.com/v3/businesses/";
+const port = process.env.PORT || 5000;
 
 http.createServer((req, res) => {
   if (req.method === "GET") {
@@ -110,4 +111,4 @@ http.createServer((req, res) => {
     res.writeHead(404, {"Content-Type": "text/html"});
     return res.end("404 Not Found");
   }
-}).listen(8080);
+}).listen(port);
